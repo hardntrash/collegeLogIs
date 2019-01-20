@@ -2,12 +2,11 @@ from flask_admin.contrib import sqla
 import flask_admin as admin
 from LogApp.forms import AdminLoginForm
 from flask_admin import expose, helpers
-from .app import app, db
+from .app import app, session
 from flask_login import logout_user, current_user
 
 
 class MyModelView(sqla.ModelView):
-
     def is_accessible(self):
         return current_user.is_authenticated
 
@@ -42,14 +41,14 @@ class MyAdminIndexView(admin.AdminIndexView):
 
 
 # регаем админку
-# admin = Admin(app, name='LogIS', template_mode='bootstrap3')
 admin = admin.Admin(app, 'CollegeLogIS', index_view=MyAdminIndexView(), base_template='my_master.html')
+
 # создаем вьюхи под модели в админке
 from .models import *
 
-admin.add_view(MyModelView(Report, db.session))
-admin.add_view(MyModelView(User, db.session))
-admin.add_view(MyModelView(Group, db.session))
-admin.add_view(MyModelView(PermissionGroup, db.session))
+admin.add_view(MyModelView(Report, session))
+admin.add_view(MyModelView(User, session))
+admin.add_view(MyModelView(Group, session))
+admin.add_view(MyModelView(PermissionGroup, session))
 
 from .views import *

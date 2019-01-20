@@ -6,37 +6,13 @@ from flask_login import current_user, login_user, login_required
 from flask import redirect, url_for, flash, render_template, request
 from .forms import LoginForm
 
-# @app.route('/')
-# @app.route('/index')
-# @login_required
-# def index():
-#     user = {'username': 'Эльдар Рязанов'}
-#     posts = [
-#         {
-#             'author': {'username': 'John'},
-#             'body': 'Beautiful day in Portland!'
-#         },
-#         {
-#             'author': {'username': 'Susan'},
-#             'body': 'The Avengers movie was so cool!'
-#         },
-#         {
-#             'author': {'username': 'Ипполит'},
-#             'body': 'Какая гадость эта ваша заливная рыба!!'
-#         }
-#     ]
-#     return render_template('index.html', title='Home', user=user, posts=posts)
-
-# @app.route('/')
-# @login_required
-# def index():
-#     return redirect(url_for('admin.index'))
-
-# Flask views
+# Главная страница
 @app.route('/')
+@login_required
 def index():
     return render_template('index.html')
 
+# авторизация для преподов, контроллеров
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
