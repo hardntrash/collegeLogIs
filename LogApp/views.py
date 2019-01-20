@@ -1,5 +1,55 @@
-from .app import app
+from werkzeug.urls import url_parse
 
-@app.route('/admin')
-def index_view():
-    return 'hello'
+from .app import app, session
+from .models import User
+from flask_login import current_user, login_user, login_required
+from flask import redirect, url_for, flash, render_template, request
+from .forms import LoginForm
+
+# @app.route('/')
+# @app.route('/index')
+# @login_required
+# def index():
+#     user = {'username': 'Эльдар Рязанов'}
+#     posts = [
+#         {
+#             'author': {'username': 'John'},
+#             'body': 'Beautiful day in Portland!'
+#         },
+#         {
+#             'author': {'username': 'Susan'},
+#             'body': 'The Avengers movie was so cool!'
+#         },
+#         {
+#             'author': {'username': 'Ипполит'},
+#             'body': 'Какая гадость эта ваша заливная рыба!!'
+#         }
+#     ]
+#     return render_template('index.html', title='Home', user=user, posts=posts)
+
+# @app.route('/')
+# @login_required
+# def index():
+#     return redirect(url_for('admin.index'))
+
+# Flask views
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('admin.index'))
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = session.query(User).filter_by(login=form.username.data).first()
+        if user is None or user.password != form.password.data:
+            flash('Invalid username or password')
+            return redirect(url_for('login'))
+        login_user(user, remember=form.remember_me.data)
+        next_page = request.args.get('next')
+        if not next_page or url_parse(next_page).netloc != '':
+            next_page = url_for('index')
+        return redirect(next_page)
+    return render_template('login.html', title='Sign In', form=form)

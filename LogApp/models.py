@@ -2,14 +2,21 @@ from .app import Base
 from sqlalchemy.orm import relationship
 from sqlalchemy import *
 from datetime import date
+from flask_login import UserMixin
+from .app import login, session
 
 # тянем таблицы из базы и делаем по ним модели
-class User(Base):
+class User(Base, UserMixin):
     __table__ = Base.metadata.tables['user']
     group = relationship("Group", backref="user")
     permission_group = relationship("PermissionGroup", backref="user")
     def __str__(self):
         return self.first_name+' '+self.last_name
+
+# функция логина
+@login.user_loader
+def load_user(id):
+    return session.query(User).get(int(id))
 
 class Group(Base):
     __table__ = Base.metadata.tables['group']

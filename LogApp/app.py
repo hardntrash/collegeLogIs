@@ -1,13 +1,20 @@
 from flask import Flask
 from sqlalchemy.orm import sessionmaker
-from flask_admin import Admin
+from flask_admin import Admin, expose, helpers
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from flask_admin.contrib.sqla import ModelView
+from flask_admin.contrib import sqla
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, logout_user, current_user
+import flask_admin as admin
+from LogApp.forms import AdminLoginForm
 
 app = Flask(__name__)
+# регаем Фласк-Логин
+login = LoginManager(app)
+login.login_view = 'login'
+
 # грузим конфиг для приложения
 app.config.from_object('LogApp.config.DevelopConfig')
 
@@ -18,19 +25,13 @@ engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
 # надстройка над базой
 # Base.metadata.create_all(engine)
 Base.metadata.reflect(engine)
-# регаем бд для фласк-алхимии
+# создаем сессию
 Session = sessionmaker(bind=engine)
+session = Session()
+# переманная бд для админки
 db = SQLAlchemy(app)
+# регаем скрипт для миграций
 migrate = Migrate(app, Base)
 
-# регаем админку
-admin = Admin(app, name='LogIS', template_mode='bootstrap3')
-
-# создаем вьюхи под модели в админке
-from .models import *
-
-admin.add_view(ModelView(Report, db.session))
-admin.add_view(ModelView(User, db.session))
-admin.add_view(ModelView(Group, db.session))
-admin.add_view(ModelView(PermissionGroup, db.session))
+from .admin import *
 
