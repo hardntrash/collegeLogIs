@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <form action="/create_report" method="post">
+        <input id="date-report" type="date" value="{{ date }}" readonly>
+        <select name="group" required>
+            <option selected="selected" disabled>Выбрать группу</option>
+            {% for group in groups %}
+                <option value="{{ group.id }}">{{ group.name }}</option>
+            {% endfor %}
+        </select>
+        <select name="teacher" required>
+            <option selected="selected" disabled>Выбрать преподавателя</option>
+            {% for teacher in teachers %}
+                <option value="{{ teacher.id }}">{{ teacher.first_name }} {{ teacher.last_name }}</option>
+            {% endfor %}
+        </select>
+        Страницы с <input type="number"> по <input type="number">
+        <textarea name="comment" required></textarea>
+        <button type="submit">Создать</button>
+    </form>
+{% endblock %}

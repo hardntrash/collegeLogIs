@@ -2,41 +2,117 @@
 
 {% block content %}
     <div id="content">
-    <h3>
-        <form action="reports" method="get">
-            {{ teacher }} - режим преподавателя
-            <button type="submit" id="show-all" class="show-all-reports">Показать все</button>
-        </form>
-    </h3>
-    <h3>
-        Контроллер - {{ controller }}
-        <select id="date" class="show-all-reports">
-            <option value selected disabled autocomplete="off">Выбрать дату</option>
-            {% for date in date_list %}
-                <option value="{{ date }}">{{ date }}</option>
-            {% endfor %}
-        </select>
-    </h3>
+    {#    для препода  #}
+    {% if user.id_permission_gorup == 2 %}
+        <h3>
+            <form action="reports" method="get">
+                {{ user }} - режим преподавателя
+                <button type="submit" id="show-all" class="show-all-reports">Показать все</button>
+            </form>
+        </h3>
+        <h3>
+            Контроллер - {{ controller }}
+            <select id="date" class="show-all-reports">
+                <option value selected disabled autocomplete="off">Выбрать дату</option>
+                {% for date in date_list %}
+                    <option value="{{ date }}">{{ date }}</option>
+                {% endfor %}
+            </select>
+        </h3>
 
-    </p>
-    {% for report in reports %}
-       <h2> Дата проверки: {{ report.date }} </h2>
-        <table class="report-block-table">
-        <tr>
-            <td style="width: 75%">
-                <table class="report-table">
-                    <tr ><th>Группа</th><th>Замечание</th></tr>
-                    <tr> <td>{{ report.group }}</td> <td>{{ report.pages }} {{ report.comment }}</td></tr>
-                </table>
-            </td>
-            <td style="border-radius: 15px; background: rgba(255,0,21,0.55); width: 10%; text-align: center">
-                {{ report.status }}
-            </td>
-            <td></td>
-        </tr>
+        {% for report in reports %}
+           <h2> Дата проверки: {{ report.date }} </h2>
+            <table class="report-block-table">
+            <tr>
+                <td style="width: 75%">
+                    <table class="report-table">
+                        <tr ><th>Группа</th><th>Замечание</th></tr>
+                        <tr> <td>{{ report.group }}</td> <td>{{ report.pages }} {{ report.comment }}</td></tr>
+                    </table>
+                </td>
+                <td style="border-radius: 15px; background: rgba(255,0,21,0.55); width: 10%; text-align: center">
+                    {{ report.status }}
+                </td>
+                <td></td>
+            </tr>
 
+            </table>
+        {% endfor %}
+    {% endif %}
+
+    {#    для контроллера#}
+
+    {% if user.id_permission_gorup == 1 %}
+        <h3>
+            <form action="reports" method="get">
+                {{ user }} - режим контроллера
+                <button type="submit" id="show-all" class="show-all-reports">Показать все</button>
+            </form>
+        </h3>
+        <table style="width: 75%">
+            <tr>
+                <td>
+                    <select id="date" class="show-all-reports">
+                        <option value selected disabled autocomplete="off">Выбрать дату</option>
+                        {% for date in date_list %}
+                            <option value="{{ date }}">{{ date }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td>
+                    <select id="group" class="show-all-reports">
+                        <option value selected disabled autocomplete="off">Выбрать группу</option>
+                        {% for group in groups_list %}
+                            <option value="{{ group.id }}">{{ group.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td>
+                    <select id="teacher" class="show-all-reports">
+                        <option value selected disabled autocomplete="off">Выбрать преподователя</option>
+                        {% for teacher in teachers_list %}
+                            <option value="{{ teacher.id }}">{{ teacher }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
         </table>
-    {% endfor %}
+
+        {% for report in reports %}
+           <h2> Преподаватель:
+               {% for teacher in teachers_list %}
+                   {% if report.id_teacher == teacher.id %}
+                        {{ teacher.first_name }} {{ teacher.last_name }}
+                   {% endif %}
+               {% endfor %}
+           </h2>
+            <table class="report-block-table">
+            <tr>
+                <td style="width: 75%">
+                    <table class="report-table">
+                        <tr >
+                            <th>Дата проверки</th>
+                            <th>Группа</th>
+                            <th>Замечание</th>
+                            <th style="float: right"></th>
+                        </tr>
+                        <tr>
+                            <td>{{ report.date }}</td>
+                            <td>{{ report.group }}</td>
+                            <td>{{ report.pages }} {{ report.comment }}</td>
+                            <td><button type="button">Редактировать</button></td>
+                        </tr>
+                    </table>
+                </td>
+                <td style="border-radius: 15px; background: rgba(255,0,21,0.55); width: 10%; text-align: center">
+                    {{ report.status }}
+                </td>
+                <td></td>
+            </tr>
+
+            </table>
+        {% endfor %}
+    {% endif %}
     </div>
     <script>
         $(document).ready(function(){
@@ -48,8 +124,6 @@
                     type: 'GET',
                     contentType: 'application/json',
                     dataType: 'json',
-                    // not sure what to do next..?
-
                 }).done(function (responce) {
                     $('#content').replaceWith(responce)
                 });
