@@ -43,3 +43,5 @@ class Report(Base):
     id_teacher = Column(Integer, ForeignKey('user.id'))
     controller = relationship('User', foreign_keys=[id_controller])
     teacher = relationship('User', foreign_keys=[id_teacher])
+    def __str__(self):
+        return self.status

@@ -1,6 +1,35 @@
 <!doctype html>
 <html>
   <head>
+      <style type="text/css">
+        .show-all-reports{
+            float: right;
+            margin-right: 50%;
+        }
+        .report-block-table{
+            border: hidden;
+            border-collapse: collapse;
+        }
+       .report-table {
+        width: 80%;
+        border-collapse: collapse;
+        word-wrap: break-word;
+        table-layout: fixed;
+       }
+       .report-table TD, TR {
+        padding: 3px;
+        border: 1px solid black;
+        width: 40%;
+       }
+       .report-table TH {
+           background: #1c66c4;
+           padding-left: 3px;
+           color: white;
+           text-align: left;
+           border: 1px;
+       }
+  </style>
+     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
   </head>
   {% with messages = get_flashed_messages() %}
   {% if messages %}

@@ -9,3 +9,4 @@ class AdminLoginForm(FlaskForm):
 class LoginForm(AdminLoginForm):
     remember_me = BooleanField('Remember Me')
     submit = SubmitField('Sign In')
+
