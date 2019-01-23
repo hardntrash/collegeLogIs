@@ -5,6 +5,8 @@
         .show-all-reports{
             float: right;
             margin-right: 50%;
+            width: 171px;
+            height: 20px;
         }
         .report-block-table{
             border: hidden;
@@ -41,6 +43,7 @@
     {% endif %}
     {% endwith %}
   <body>
+    <a href="/logout">Выход</a>
     {% block content %}{% endblock %}
   </body>
 </html>

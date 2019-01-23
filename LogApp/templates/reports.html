@@ -49,7 +49,7 @@
                 <button type="submit" id="show-all" class="show-all-reports">Показать все</button>
             </form>
         </h3>
-        <table style="width: 75%">
+        <table style="width: 100%">
             <tr>
                 <td>
                     <select id="date" class="show-all-reports">
@@ -76,6 +76,22 @@
                     </select>
                 </td>
             </tr>
+            <tr>
+                <td>
+                    <select class="show-all-reports" id="status">
+                        <option value selected disabled autocomplete="off">Выбрать статус</option>
+                        <option value="Исправить">Исправить</option>
+                        <option value="Подтверждение">Подтверждение</option>
+                        <option value="Выполнено">Выполнено</option>
+                    </select>
+                </td>
+                <td>
+                    <form action="/create_report" method="get">
+                        <button type="submit" style="margin-right: 50%; float: right; width: 171px; height: 20px">Сделать замечание</button>
+                    </form>
+                </td>
+
+            </tr>
         </table>
 
         {% for report in reports %}
@@ -90,7 +106,7 @@
             <tr>
                 <td style="width: 75%">
                     <table class="report-table">
-                        <tr >
+                        <tr>
                             <th>Дата проверки</th>
                             <th>Группа</th>
                             <th>Замечание</th>
@@ -121,6 +137,42 @@
                 $("#date").attr('selectedIndex', 0);
                 $.ajax({
                     url: "/reports?date="+date,
+                    type: 'GET',
+                    contentType: 'application/json',
+                    dataType: 'json',
+                }).done(function (responce) {
+                    $('#content').replaceWith(responce)
+                });
+            });
+            $("#group").change(function() {
+                var group=($('#group option:selected').text());
+                $("#group").attr('selectedIndex', 0);
+                $.ajax({
+                    url: "/reports?group="+group,
+                    type: 'GET',
+                    contentType: 'application/json',
+                    dataType: 'json',
+                }).done(function (responce) {
+                    $('#content').replaceWith(responce)
+                });
+            });
+            $("#teacher").change(function() {
+                var teacher=($('#teacher option:selected').text());
+                $("#teacher").attr('selectedIndex', 0);
+                $.ajax({
+                    url: "/reports?teacher="+teacher,
+                    type: 'GET',
+                    contentType: 'application/json',
+                    dataType: 'json',
+                }).done(function (responce) {
+                    $('#content').replaceWith(responce)
+                });
+            });
+            $("#status").change(function() {
+                var status=($('#status option:selected').text());
+                $("#status").attr('selectedIndex', 0);
+                $.ajax({
+                    url: "/reports?status="+status,
                     type: 'GET',
                     contentType: 'application/json',
                     dataType: 'json',

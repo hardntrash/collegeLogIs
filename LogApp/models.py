@@ -36,7 +36,7 @@ class Report(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     date = Column(Date, default=date.today())
     comment = Column(Text)
-    status = Column(String(30), CheckConstraint("status IN ('Выполнено', 'Подтверждение', 'Исправить')"))
+    status = Column(String(30), default="Исправить")
     pages = Column(String(20))
     id_group = Column(Integer, ForeignKey('group.id'))
     id_controller = Column(Integer, ForeignKey('user.id'))
