@@ -1,4 +1,6 @@
 from datetime import date
+
+from werkzeug.exceptions import BadRequest, NotFound
 from werkzeug.urls import url_parse
 
 from .app import app, session
@@ -90,13 +92,34 @@ def reports_view():
 def create_report_view():
     if request.method == 'POST':
         report = Report(date=date.today(), id_group=int(request.form['group']), id_teacher=int(request.form['teacher']),
-                        comment=request.form['comment'], id_controller=int(current_user.id))
+                        comment=request.form['comment'], id_controller=int(current_user.id),
+                        pages=str('Страницы: с '+ request.form['number-from']+' по '+request.form['number-to']) + '.')
         session.add(report)
         session.commit()
         return redirect(url_for('reports_view'))
     groups = session.query(Group).all()
     teachers = session.query(User).filter(User.id_permission_gorup==2).all()
     return render_template('create_report.html', date=date.today(), groups=groups, teachers=teachers)
+
+@app.route('/change_report/<id>', methods=["GET", "POST"])
+@login_required
+def change_report_view(id):
+    try:
+        report = session.query(Report).get(id)
+        if request.headers.get('action') == 'status':
+            if current_user.id_permission_gorup == 2:
+                report.status = 'Подтверждение'
+            if current_user.id_permission_gorup == 1:
+                report.status = 'Выполнено'
+        if request.headers.get('action') == 'info':
+            report = request.form
+            report.status = 'Исправить'
+        session.commit()
+        import time
+        time.sleep(3)
+        return 'ok'
+    except:
+        return NotFound("Report not found")
 
 @app.route("/logout")
 @login_required

@@ -120,9 +120,21 @@
                         </tr>
                     </table>
                 </td>
-                <td style="border-radius: 15px; background: rgba(255,0,21,0.55); width: 10%; text-align: center">
-                    {{ report.status }}
-                </td>
+                {% if report.status == 'Исправить' %}
+                    <td style="border-radius: 15px; background: rgba(255,0,21,0.55); width: 10%; text-align: center">
+                        {{ report.status }}
+                    </td>
+                {% endif %}
+                {% if report.status == 'Подтверждение' %}
+                    <td style="border-radius: 15px; background: #ffe928; width: 10%; text-align: center">
+                        <button type="button" id="change-status" value="{{ report.id }}" title="Нажмите, чтобы изменить статус на 'Выполнено'" style="background: inherit; border: inherit; background-image: none; font-size: inherit">{{ report.status }}</button>
+                    </td>
+                {% endif %}
+                {% if report.status == 'Выполнено' %}
+                    <td style="border-radius: 15px; background: rgba(67,255,26,0.55); width: 10%; text-align: center">
+                        {{ report.status }}
+                    </td>
+                {% endif %}
                 <td></td>
             </tr>
 
@@ -131,12 +143,12 @@
     {% endif %}
     </div>
     <script>
-        $(document).ready(function(){
-            $("#date").change(function() {
-                var date=($('#date option:selected').text());
+        $(document).ready(function() {
+            $("#date").change(function () {
+                var date = ($('#date option:selected').text());
                 $("#date").attr('selectedIndex', 0);
                 $.ajax({
-                    url: "/reports?date="+date,
+                    url: "/reports?date=" + date,
                     type: 'GET',
                     contentType: 'application/json',
                     dataType: 'json',
@@ -144,11 +156,11 @@
                     $('#content').replaceWith(responce)
                 });
             });
-            $("#group").change(function() {
-                var group=($('#group option:selected').text());
+            $("#group").change(function () {
+                var group = ($('#group option:selected').text());
                 $("#group").attr('selectedIndex', 0);
                 $.ajax({
-                    url: "/reports?group="+group,
+                    url: "/reports?group=" + group,
                     type: 'GET',
                     contentType: 'application/json',
                     dataType: 'json',
@@ -156,11 +168,11 @@
                     $('#content').replaceWith(responce)
                 });
             });
-            $("#teacher").change(function() {
-                var teacher=($('#teacher option:selected').text());
+            $("#teacher").change(function () {
+                var teacher = ($('#teacher option:selected').text());
                 $("#teacher").attr('selectedIndex', 0);
                 $.ajax({
-                    url: "/reports?teacher="+teacher,
+                    url: "/reports?teacher=" + teacher,
                     type: 'GET',
                     contentType: 'application/json',
                     dataType: 'json',
@@ -168,17 +180,41 @@
                     $('#content').replaceWith(responce)
                 });
             });
-            $("#status").change(function() {
-                var status=($('#status option:selected').text());
+            $("#status").change(function () {
+                var status = ($('#status option:selected').text());
                 $("#status").attr('selectedIndex', 0);
                 $.ajax({
-                    url: "/reports?status="+status,
+                    url: "/reports?status=" + status,
                     type: 'GET',
                     contentType: 'application/json',
                     dataType: 'json',
                 }).done(function (responce) {
                     $('#content').replaceWith(responce)
                 });
+            });
+            $("#change-status").on('click', function () {
+                var id_report = ($('#change-status').val());
+                alert(id_report)
+                $.ajax({
+                    url: "/change_report/" + id_report,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    dataType: 'json',
+                    beforeSend: function (request) {
+                        request.setRequestHeader("action", 'status');
+                    }
+                }).done(function (responce) {
+                    alert(responce)
+                });
+                $.ajax({
+                        url: "/reports",
+                        type: 'GET',
+                        contentType: 'application/json',
+                        dataType: 'json',
+                    }).done(function (responce1) {
+                        alert('fck')
+                        $('#content').replaceWith(responce1)
+                    });
             });
         });
     </script>
