@@ -89,7 +89,7 @@ def reports_view():
                                teachers_list=teachers_list, groups_list=groups_list))
         return render_template('reports.html', user=current_user, reports=reports, date_list=date_list,
                                teachers_list=teachers_list, groups_list=groups_list)
-
+    return BadRequest()
 @app.route('/create_report', methods=['GET', 'POST'])
 @login_required
 def create_report_view():
