@@ -6,8 +6,11 @@ from werkzeug.urls import url_parse
 from .app import app, session
 from .models import User, Report, Group
 from flask_login import current_user, login_user, login_required, logout_user
-from flask import redirect, url_for, flash, render_template, request, jsonify
+from flask import redirect, url_for, flash, render_template, request, jsonify, json
+
 from .forms import LoginForm
+
+from sqlalchemy import desc
 
 # Главная страница
 @app.route('/')
@@ -41,7 +44,7 @@ def login():
 def reports_view():
     if current_user.id_permission_gorup == 2:
         teacher = current_user
-        reports = session.query(Report).filter(Report.id_teacher == current_user.id).all()
+        reports = session.query(Report).filter(Report.id_teacher == current_user.id).order_by(desc(Report.id)).all()
         date_list = set([report.date for report in reports])
         controller = reports[0].controller
         if request.args.get('date') is not None:
@@ -52,7 +55,7 @@ def reports_view():
         return render_template('reports.html', reports=reports, user=teacher, controller=controller,
                                date_list=date_list)
     if current_user.id_permission_gorup == 1:
-        reports = session.query(Report).filter(Report.id_controller == current_user.id).all()
+        reports = session.query(Report).filter(Report.id_controller == current_user.id).order_by(desc(Report.id)).all()
         date_list = set([report.date for report in reports])
         teachers_list = []
         groups_list = []
@@ -101,25 +104,53 @@ def create_report_view():
     teachers = session.query(User).filter(User.id_permission_gorup==2).all()
     return render_template('create_report.html', date=date.today(), groups=groups, teachers=teachers)
 
-@app.route('/change_report/<id>', methods=["GET", "POST"])
+@app.route('/change_status_report/<id>', methods=["GET", "POST"])
 @login_required
-def change_report_view(id):
+def change_status_report_view(id):
     try:
         report = session.query(Report).get(id)
         if request.headers.get('action') == 'status':
             if current_user.id_permission_gorup == 2:
                 report.status = 'Подтверждение'
             if current_user.id_permission_gorup == 1:
-                report.status = 'Выполнено'
+                if request.headers.get('change') == 'success':
+                    report.status = 'Выполнено'
+                if request.headers.get('change') == 'change':
+                    report.status = 'Исправить'
         if request.headers.get('action') == 'info':
             report = request.form
             report.status = 'Исправить'
         session.commit()
         import time
-        time.sleep(3)
-        return 'ok'
+        # time.sleep(1)
+        return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
     except:
         return NotFound("Report not found")
+
+@app.route('/change_report/<id>', methods=["GET", "POST"])
+@login_required
+def change_report_view(id):
+    report = session.query(Report).get(id)
+    if request.method == 'POST':
+        report.date=date.today()
+        report.id_group=int(request.form['group'])
+        report.id_teacher=int(request.form['teacher'])
+        report.comment=request.form['comment']
+        report.id_controller=int(current_user.id)
+        report.pages=str('Страницы: с '+ request.form['number-from']+' по '+request.form['number-to']) + '.'
+        session.commit()
+        return redirect(url_for('reports_view'))
+    groups = session.query(Group).all()
+    import re
+    page_start = page_end = None
+    try:
+        page_start, page_end = re.findall('(\d+)', report.pages)
+    except ValueError:
+        pass
+    teachers = session.query(User).filter(User.id_permission_gorup == 2).all()
+    return render_template('create_report.html', date=date.today(), groups=groups, teachers=teachers, report=report,
+                           page_start=page_start, page_end=page_end)
+
 
 @app.route("/logout")
 @login_required

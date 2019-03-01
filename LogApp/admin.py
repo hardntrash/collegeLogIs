@@ -1,17 +1,23 @@
 from flask_admin.contrib import sqla
 import flask_admin as admin
+from werkzeug.exceptions import Forbidden
+
 from LogApp.forms import AdminLoginForm
 from flask_admin import expose, helpers
 from .app import app, session
-from flask_login import logout_user, current_user
+from flask_login import logout_user, current_user, AnonymousUserMixin, login_required
 
 
 class MyModelView(sqla.ModelView):
     def is_accessible(self):
-        return current_user.is_authenticated
+        try:
+            return current_user.id_permission_gorup == 4
+        except AttributeError:
+            return redirect(url_for('admin.login_view'))
 
 class MyAdminIndexView(admin.AdminIndexView):
     @expose('/')
+    @login_required
     def index(self):
         if not current_user.is_authenticated:
             return redirect(url_for('.login_view'))

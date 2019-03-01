@@ -30,9 +30,21 @@
                         <tr> <td>{{ report.group }}</td> <td>{{ report.pages }} {{ report.comment }}</td></tr>
                     </table>
                 </td>
-                <td style="border-radius: 15px; background: rgba(255,0,21,0.55); width: 10%; text-align: center">
-                    {{ report.status }}
-                </td>
+                {% if report.status == 'Исправить' %}
+                    <td style="border-radius: 15px; background: rgba(255,0,21,0.55); width: 10%; text-align: center">
+                        <button type="button" class="button-change-status-change" value="{{ report.id }}" title="Нажмите, чтобы изменить статус на 'Подтверждение'" style="background: inherit; border: inherit; background-image: none; font-size: inherit">{{ report.status }}</button>
+                    </td>
+                {% endif %}
+                {% if report.status == 'Подтверждение' %}
+                    <td style="border-radius: 15px; background: #ffe928; width: 10%; text-align: center">
+                        {{ report.status }}
+                    </td>
+                {% endif %}
+                {% if report.status == 'Выполнено' %}
+                    <td style="border-radius: 15px; background: rgba(67,255,26,0.55); width: 10%; text-align: center">
+                        {{ report.status }}
+                    </td>
+                {% endif %}
                 <td></td>
             </tr>
 
@@ -110,13 +122,13 @@
                             <th>Дата проверки</th>
                             <th>Группа</th>
                             <th>Замечание</th>
-                            <th style="float: right"></th>
+                            <th ></th>
                         </tr>
                         <tr>
                             <td>{{ report.date }}</td>
                             <td>{{ report.group }}</td>
                             <td>{{ report.pages }} {{ report.comment }}</td>
-                            <td><button type="button">Редактировать</button></td>
+                            <td><form action="/change_report/{{ report.id }}" method="GET"><button type="submit">Редактировать</button></form></td>
                         </tr>
                     </table>
                 </td>
@@ -127,12 +139,12 @@
                 {% endif %}
                 {% if report.status == 'Подтверждение' %}
                     <td style="border-radius: 15px; background: #ffe928; width: 10%; text-align: center">
-                        <button type="button" id="change-status" value="{{ report.id }}" title="Нажмите, чтобы изменить статус на 'Выполнено'" style="background: inherit; border: inherit; background-image: none; font-size: inherit">{{ report.status }}</button>
+                        <button type="button" class="button-change-status-success" id="{{ report.id }}" value="{{ report.id }}" title="Нажмите, чтобы изменить статус на 'Выполнено'" style="background: inherit; border: inherit; background-image: none; font-size: inherit">{{ report.status }}</button>
                     </td>
                 {% endif %}
                 {% if report.status == 'Выполнено' %}
                     <td style="border-radius: 15px; background: rgba(67,255,26,0.55); width: 10%; text-align: center">
-                        {{ report.status }}
+                        <button type="button" class="button-change-status-change" id="{{ report.id }}" value="{{ report.id }}" title="Нажмите, чтобы изменить статус на 'Исправить'" style="background: inherit; border: inherit; background-image: none; font-size: inherit">{{ report.status }}</button>
                     </td>
                 {% endif %}
                 <td></td>
@@ -144,6 +156,7 @@
     </div>
     <script>
         $(document).ready(function() {
+            var cur_place = null;
             $("#date").change(function () {
                 var date = ($('#date option:selected').text());
                 $("#date").attr('selectedIndex', 0);
@@ -153,6 +166,7 @@
                     contentType: 'application/json',
                     dataType: 'json',
                 }).done(function (responce) {
+                    console.log(responce)
                     $('#content').replaceWith(responce)
                 });
             });
@@ -192,30 +206,41 @@
                     $('#content').replaceWith(responce)
                 });
             });
-            $("#change-status").on('click', function () {
-                var id_report = ($('#change-status').val());
-                alert(id_report)
-                $.ajax({
-                    url: "/change_report/" + id_report,
-                    type: 'POST',
-                    contentType: 'application/json',
-                    dataType: 'json',
-                    beforeSend: function (request) {
-                        request.setRequestHeader("action", 'status');
-                    }
-                }).done(function (responce) {
-                    alert(responce)
-                });
-                $.ajax({
-                        url: "/reports",
-                        type: 'GET',
+            $(".button-change-status-change").each(function () {
+                var id_report = ($(this).val());
+                $(this).on('click', function () {
+                    $.ajax({
+                        url: "/change_status_report/" + id_report,
+                        type: 'POST',
                         contentType: 'application/json',
                         dataType: 'json',
-                    }).done(function (responce1) {
-                        alert('fck')
-                        $('#content').replaceWith(responce1)
+                        beforeSend: function (request) {
+                            request.setRequestHeader("action", 'status');
+                            request.setRequestHeader("change", 'change')
+                        }
+                    }).done(function (responce) {
+                        location.reload();
                     });
             });
+            })
+            $(".button-change-status-success").each(function () {
+                var id_report = ($(this).val());
+                $(this).on('click', function () {
+                    $.ajax({
+                        url: "/change_status_report/" + id_report,
+                        type: 'POST',
+                        contentType: 'application/json',
+                        dataType: 'json',
+                        beforeSend: function (request) {
+                            request.setRequestHeader("action", 'status');
+                            request.setRequestHeader("change", 'success')
+                        }
+                    }).done(function (responce) {
+{#                        location.reload();#}
+                        location.href = location.href;
+                    });
+            });
+            })
         });
     </script>
 {% endblock %}

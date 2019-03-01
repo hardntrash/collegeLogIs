@@ -1,26 +1,58 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <form action="/create_report" method="post" style="width: 50%;">
-        <p style="padding-left: 25%">Дата: <input id="date-report" type="date" value="{{ date }}" readonly></p>
-        <p style="padding-left: 20%">
-            <select name="group" required>
-                <option selected="selected" disabled>Выбрать группу</option>
-                {% for group in groups %}
-                    <option value="{{ group.id }}">{{ group.name }}</option>
-                {% endfor %}
-            </select>
+    {% if report is defined %}
+        <form action="/change_report/{{ report.id }}" method="post" style="width: 50%;">
+            <p style="padding-left: 25%">Дата: <input id="date-report" type="date" value="{{ date }}" readonly></p>
+            <p style="padding-left: 20%">
+                <select name="group" required>
+                    {% for group in groups %}
+                        {% if group.name == report.group %}
+                            <option value="{{ group.id }}" selected="selected">{{ group.name }}</option>
+                        {% else %}
+                            <option value="{{ group.id }}">{{ group.name }}</option>
+                        {% endif %} }}
+                    {% endfor %}
+                </select>
 
-            <select name="teacher" required>
-                <option selected="selected" disabled>Выбрать преподавателя</option>
-                {% for teacher in teachers %}
-                    <option value="{{ teacher.id }}">{{ teacher.first_name }} {{ teacher.last_name }}</option>
-                {% endfor %}
-            </select>
-        </p>
-        <p style="padding-left: 10%">Страницы с <input type="number" name="number-from"> по <input type="number" name="number-to"></p>
-        <p style="padding-left: 7%"><textarea name="comment" required style="width: 70%" placeholder="Замечание"></textarea></p>
-        <p style="padding-left: 7%"><button type="submit" style="width: 70%">Создать</button></p>
-    </form>
-    <a href="/reports"><< Вернуться</a>
+                <select name="teacher" required>
+                    {% for teacher in teachers %}
+                        {% if (teacher.first_name+''+teacher.last_name) == report.teacher %}
+                            <option value="{{ teacher.id }}" selected="selected">{{ teacher.first_name }} {{ teacher.last_name }}</option>
+                        {% else %}
+                            <option value="{{ teacher.id }}">{{ teacher.first_name }} {{ teacher.last_name }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </p>
+            <p style="padding-left: 10%">Страницы с <input type="number" name="number-from" value="{{ page_start }}"> по <input type="number" name="number-to"
+            value="{{ page_end }}"></p>
+            <p style="padding-left: 7%"><textarea name="comment" required style="width: 70%" placeholder="Замечание">{{ report.comment }}</textarea></p>
+            <p style="padding-left: 7%"><button type="submit" style="width: 70%">Изменить</button></p>
+        </form>
+        <a href="/reports"><< Вернуться</a>
+    {% else %}
+        <form action="/create_report" method="post" style="width: 50%;">
+            <p style="padding-left: 25%">Дата: <input id="date-report" type="date" value="{{ date }}" readonly></p>
+            <p style="padding-left: 20%">
+                <select name="group" required>
+                    <option selected="selected" disabled>Выбрать группу</option>
+                    {% for group in groups %}
+                        <option value="{{ group.id }}">{{ group.name }}</option>
+                    {% endfor %}
+                </select>
+
+                <select name="teacher" required>
+                    <option selected="selected" disabled>Выбрать преподавателя</option>
+                    {% for teacher in teachers %}
+                        <option value="{{ teacher.id }}">{{ teacher.first_name }} {{ teacher.last_name }}</option>
+                    {% endfor %}
+                </select>
+            </p>
+            <p style="padding-left: 10%">Страницы с <input type="number" name="number-from"> по <input type="number" name="number-to"></p>
+            <p style="padding-left: 7%"><textarea name="comment" required style="width: 70%" placeholder="Замечание"></textarea></p>
+            <p style="padding-left: 7%"><button type="submit" style="width: 70%">Создать</button></p>
+        </form>
+        <a href="/reports"><< Вернуться</a>
+    {% endif %}
 {% endblock %}
