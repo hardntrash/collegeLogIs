@@ -153,6 +153,114 @@
             </table>
         {% endfor %}
     {% endif %}
+
+    {#    для админа #}
+
+    {% if user.id_permission_gorup == 3 %}
+        <h3>
+            <form action="reports" method="get">
+                {{ user }} - режим администратора
+                <button type="submit" id="show-all" class="show-all-reports">Показать все</button>
+            </form>
+        </h3>
+        <table style="width: 100%">
+            <tr>
+                <td>
+                    <select id="date" class="show-all-reports">
+                        <option value selected disabled autocomplete="off">Выбрать дату</option>
+                        {% for date in date_list %}
+                            <option value="{{ date }}">{{ date }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td>
+                    <select id="group" class="show-all-reports">
+                        <option value selected disabled autocomplete="off">Выбрать группу</option>
+                        {% for group in groups_list %}
+                            <option value="{{ group.id }}">{{ group.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td>
+                    <select id="teacher" class="show-all-reports">
+                        <option value selected disabled autocomplete="off">Выбрать преподователя</option>
+                        {% for teacher in teachers_list %}
+                            <option value="{{ teacher.id }}">{{ teacher }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <select class="show-all-reports" id="status">
+                        <option value selected disabled autocomplete="off">Выбрать статус</option>
+                        <option value="Исправить">Исправить</option>
+                        <option value="Подтверждение">Подтверждение</option>
+                        <option value="Выполнено">Выполнено</option>
+                    </select>
+                </td>
+                <td>
+                    <select id="controller" class="show-all-reports">
+                        <option value selected disabled autocomplete="off">Выбрать контроллера</option>
+                        {% for controller in controller_list %}
+                            <option value="{{ controller.id }}">{{ controller }}</option>
+                        {% endfor %}
+                    </select>
+            </tr>
+        </table>
+
+        {% for report in reports %}
+           <h2> Преподаватель:
+               {% for teacher in teachers_list %}
+                   {% if report.id_teacher == teacher.id %}
+                        {{ teacher.first_name }} {{ teacher.last_name }}
+                   {% endif %}
+               {% endfor %}
+           </h2>
+           <h2> Преподаватель:
+               {% for controller in controller_list %}
+                   {% if report.id_controller == controller.id %}
+                        {{ controller.first_name }} {{ controller.last_name }}
+                   {% endif %}
+               {% endfor %}
+           </h2>
+            <table class="report-block-table">
+            <tr>
+                <td style="width: 75%">
+                    <table class="report-table">
+                        <tr>
+                            <th>Дата проверки</th>
+                            <th>Группа</th>
+                            <th>Замечание</th>
+                        </tr>
+                        <tr>
+                            <td>{{ report.date }}</td>
+                            <td>{{ report.group }}</td>
+                            <td>{{ report.pages }} {{ report.comment }}</td>
+                        </tr>
+                    </table>
+                </td>
+                {% if report.status == 'Исправить' %}
+                    <td style="border-radius: 15px; background: rgba(255,0,21,0.55); width: 10%; text-align: center">
+                        {{ report.status }}
+                    </td>
+                {% endif %}
+                {% if report.status == 'Подтверждение' %}
+                    <td style="border-radius: 15px; background: #ffe928; width: 10%; text-align: center">
+                        <button type="button" style="background: inherit; border: inherit; background-image: none; font-size: inherit">{{ report.status }}</button>
+                    </td>
+                {% endif %}
+                {% if report.status == 'Выполнено' %}
+                    <td style="border-radius: 15px; background: rgba(67,255,26,0.55); width: 10%; text-align: center">
+                        <button type="button" style="background: inherit; border: inherit; background-image: none; font-size: inherit">{{ report.status }}</button>
+                    </td>
+                {% endif %}
+                <td></td>
+            </tr>
+
+            </table>
+        {% endfor %}
+    {% endif %}
     </div>
     <script>
         $(document).ready(function() {
@@ -187,6 +295,18 @@
                 $("#teacher").attr('selectedIndex', 0);
                 $.ajax({
                     url: "/reports?teacher=" + teacher,
+                    type: 'GET',
+                    contentType: 'application/json',
+                    dataType: 'json',
+                }).done(function (responce) {
+                    $('#content').replaceWith(responce)
+                });
+            });
+            $("#controller").change(function () {
+                var controller = ($('#controller option:selected').text());
+                $("#controller").attr('selectedIndex', 0);
+                $.ajax({
+                    url: "/reports?controller=" + controller,
                     type: 'GET',
                     contentType: 'application/json',
                     dataType: 'json',
