@@ -1,3 +1,4 @@
+import ldap
 from flask import Flask
 from sqlalchemy.orm import sessionmaker
 from flask_admin import Admin, expose, helpers
@@ -32,6 +33,10 @@ session = Session()
 db = SQLAlchemy(app)
 # регаем скрипт для миграций
 migrate = Migrate(app, Base)
+
+def get_ldap_connection():
+    conn = ldap.initialize(app.config['LDAP_PROVIDER_URL'])
+    return conn
 
 from .admin import *
 

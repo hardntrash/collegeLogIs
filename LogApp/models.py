@@ -5,6 +5,7 @@ from datetime import date
 from flask_login import UserMixin
 from .app import login, session
 
+
 # тянем таблицы из базы и делаем по ним модели
 class User(Base, UserMixin):
     __table__ = Base.metadata.tables['g4er6y_users']
