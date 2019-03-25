@@ -3,7 +3,7 @@
 {% block content %}
     <div id="content">
     {#    для препода  #}
-    {% if user.id_permission_gorup == 2 %}
+    {% if permission_group_id == 18 %}
         <h3>
             <form action="reports" method="get">
                 {{ user }} - режим преподавателя
@@ -54,7 +54,7 @@
 
     {#    для контроллера#}
 
-    {% if user.id_permission_gorup == 1 %}
+    {% if permission_group_id == 31 %}
         <h3>
             <form action="reports" method="get">
                 {{ user }} - режим контроллера
@@ -75,7 +75,7 @@
                     <select id="group" class="show-all-reports">
                         <option value selected disabled autocomplete="off">Выбрать группу</option>
                         {% for group in groups_list %}
-                            <option value="{{ group.id }}">{{ group.name }}</option>
+                            <option value="{{ group }}">{{ group }}</option>
                         {% endfor %}
                     </select>
                 </td>
@@ -110,7 +110,7 @@
            <h2> Преподаватель:
                {% for teacher in teachers_list %}
                    {% if report.id_teacher == teacher.id %}
-                        {{ teacher.first_name }} {{ teacher.last_name }}
+                        {{ teacher.name }}
                    {% endif %}
                {% endfor %}
            </h2>
@@ -156,7 +156,7 @@
 
     {#    для админа #}
 
-    {% if user.id_permission_gorup == 3 %}
+    {% if permission_group_id==6 or permission_group_id==1%}
         <h3>
             <form action="reports" method="get">
                 {{ user }} - режим администратора
@@ -177,7 +177,7 @@
                     <select id="group" class="show-all-reports">
                         <option value selected disabled autocomplete="off">Выбрать группу</option>
                         {% for group in groups_list %}
-                            <option value="{{ group.id }}">{{ group.name }}</option>
+                            <option value="{{ group }}">{{ group }}</option>
                         {% endfor %}
                     </select>
                 </td>
@@ -213,14 +213,14 @@
            <h2> Преподаватель:
                {% for teacher in teachers_list %}
                    {% if report.id_teacher == teacher.id %}
-                        {{ teacher.first_name }} {{ teacher.last_name }}
+                        {{ teacher.name }}
                    {% endif %}
                {% endfor %}
            </h2>
-           <h2> Преподаватель:
+           <h2> Контроллер:
                {% for controller in controller_list %}
                    {% if report.id_controller == controller.id %}
-                        {{ controller.first_name }} {{ controller.last_name }}
+                        {{ controller.name }}
                    {% endif %}
                {% endfor %}
            </h2>

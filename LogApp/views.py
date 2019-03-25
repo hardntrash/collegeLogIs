@@ -1,10 +1,10 @@
 from datetime import date
 
-from werkzeug.exceptions import BadRequest, NotFound
+from werkzeug.exceptions import BadRequest, NotFound, Forbidden
 from werkzeug.urls import url_parse
 
 from .app import app, session
-from .models import User, Report, Group
+from .models import User, UserGroup, UserUsergroupMap, Report
 from flask_login import current_user, login_user, login_required, logout_user
 from flask import redirect, url_for, flash, render_template, request, jsonify, json
 
@@ -25,7 +25,7 @@ def login():
         return redirect(url_for('admin.index'))
     form = LoginForm()
     if form.validate_on_submit():
-        user = session.query(User).filter_by(login=form.username.data).first()
+        user = session.query(User).filter_by(username=form.username.data).first()
         if user is None or user.password != form.password.data:
             flash('Invalid username or password')
             return redirect(url_for('login'))
@@ -42,19 +42,25 @@ def login():
 @app.route('/reports')
 @login_required
 def reports_view():
-    if current_user.id_permission_gorup == 2:
+    permission_group_id = User.get_group_parent_id(current_user)
+    if  permission_group_id == 18:
         teacher = current_user
+
         reports = session.query(Report).filter(Report.id_teacher == current_user.id).order_by(desc(Report.id)).all()
         date_list = set([report.date for report in reports])
-        controller = reports[0].controller
+
+        try:
+            controller = reports[0].controller
+        except IndexError:
+            controller = "контроллер не назначен"
         if request.args.get('date') is not None:
             reports = [report for report in reports if str(report.date) == request.args.get('date')]
             if 'CONTENT_TYPE' in request.headers.environ:
                 return jsonify(render_template('reports.html', reports=reports, user=current_user, controller=controller,
-                                               date_list=date_list))
+                                               date_list=date_list, permission_group_id=permission_group_id))
         return render_template('reports.html', reports=reports, user=teacher, controller=controller,
-                               date_list=date_list)
-    if current_user.id_permission_gorup == 1:
+                               date_list=date_list, permission_group_id=permission_group_id)
+    if permission_group_id == 31:
         reports = session.query(Report).filter(Report.id_controller == current_user.id).order_by(desc(Report.id)).all()
         date_list = set([report.date for report in reports])
         teachers_list = []
@@ -64,32 +70,36 @@ def reports_view():
             if teachers_list.count(teacher) < 1:
                 teachers_list.append(teacher)
         for report in reports:
-            group = session.query(Group).get(report.id_group)
-            if groups_list.count(group) < 1:
-                groups_list.append(group)
+            if groups_list.count(report.group) < 1:
+                groups_list.append(report.group)
         if request.args.get('date') is not None:
             reports = [report for report in reports if str(report.date) == request.args.get('date')]
             if 'CONTENT_TYPE' in request.headers.environ:
                 return jsonify(render_template('reports.html', user=current_user, reports=reports, date_list=date_list,
-                               teachers_list=teachers_list, groups_list=groups_list))
+                               teachers_list=teachers_list, groups_list=groups_list,
+                                               permission_group_id=permission_group_id))
         if request.args.get('group') is not None:
             reports = [report for report in reports if str(report.group) == request.args.get('group')]
             if 'CONTENT_TYPE' in request.headers.environ:
                 return jsonify(render_template('reports.html', user=current_user, reports=reports, date_list=date_list,
-                               teachers_list=teachers_list, groups_list=groups_list))
+                               teachers_list=teachers_list, groups_list=groups_list,
+                                               permission_group_id=permission_group_id))
         if request.args.get('teacher') is not None:
             reports = [report for report in reports if str(report.teacher) == request.args.get('teacher')]
             if 'CONTENT_TYPE' in request.headers.environ:
                 return jsonify(render_template('reports.html', user=current_user, reports=reports, date_list=date_list,
-                               teachers_list=teachers_list, groups_list=groups_list))
+                               teachers_list=teachers_list, groups_list=groups_list,
+                                               permission_group_id=permission_group_id))
         if request.args.get('status') is not None:
             reports = [report for report in reports if str(report.status) == request.args.get('status')]
             if 'CONTENT_TYPE' in request.headers.environ:
                 return jsonify(render_template('reports.html', user=current_user, reports=reports, date_list=date_list,
-                               teachers_list=teachers_list, groups_list=groups_list))
+                               teachers_list=teachers_list, groups_list=groups_list,
+                                               permission_group_id=permission_group_id))
         return render_template('reports.html', user=current_user, reports=reports, date_list=date_list,
-                               teachers_list=teachers_list, groups_list=groups_list)
-    if current_user.id_permission_gorup == 3:
+                               teachers_list=teachers_list, groups_list=groups_list,
+                               permission_group_id=permission_group_id)
+    if permission_group_id == 6 or permission_group_id == 1:
         reports = session.query(Report).order_by(desc(Report.id)).all()
         date_list = set([report.date for report in reports])
         teachers_list = []
@@ -100,9 +110,8 @@ def reports_view():
             if teachers_list.count(teacher) < 1:
                 teachers_list.append(teacher)
         for report in reports:
-            group = session.query(Group).get(report.id_group)
-            if groups_list.count(group) < 1:
-                groups_list.append(group)
+            if groups_list.count(report.group) < 1:
+                groups_list.append(report.group)
         for report in reports:
             controller = session.query(User).get(report.id_controller)
             if controller_list.count(controller) < 1:
@@ -111,54 +120,64 @@ def reports_view():
             reports = [report for report in reports if str(report.date) == request.args.get('date')]
             if 'CONTENT_TYPE' in request.headers.environ:
                 return jsonify(render_template('reports.html', user=current_user, reports=reports, date_list=date_list,
-                               teachers_list=teachers_list, groups_list=groups_list, controller_list=controller_list))
+                               teachers_list=teachers_list, groups_list=groups_list, controller_list=controller_list,
+                                               permission_group_id=permission_group_id))
         if request.args.get('group') is not None:
             reports = [report for report in reports if str(report.group) == request.args.get('group')]
             if 'CONTENT_TYPE' in request.headers.environ:
                 return jsonify(render_template('reports.html', user=current_user, reports=reports, date_list=date_list,
-                               teachers_list=teachers_list, groups_list=groups_list, controller_list=controller_list))
+                               teachers_list=teachers_list, groups_list=groups_list, controller_list=controller_list,
+                                               permission_group_id=permission_group_id))
         if request.args.get('teacher') is not None:
             reports = [report for report in reports if str(report.teacher) == request.args.get('teacher')]
             if 'CONTENT_TYPE' in request.headers.environ:
                 return jsonify(render_template('reports.html', user=current_user, reports=reports, date_list=date_list,
-                               teachers_list=teachers_list, groups_list=groups_list, controller_list=controller_list))
+                               teachers_list=teachers_list, groups_list=groups_list, controller_list=controller_list,
+                                               permission_group_id=permission_group_id))
         if request.args.get('controller') is not None:
             reports = [report for report in reports if str(report.controller) == request.args.get('controller')]
             if 'CONTENT_TYPE' in request.headers.environ:
                 return jsonify(render_template('reports.html', user=current_user, reports=reports, date_list=date_list,
-                               teachers_list=teachers_list, groups_list=groups_list, controller_list=controller_list))
+                               teachers_list=teachers_list, groups_list=groups_list, controller_list=controller_list,
+                                               permission_group_id=permission_group_id))
         if request.args.get('status') is not None:
             reports = [report for report in reports if str(report.status) == request.args.get('status')]
             if 'CONTENT_TYPE' in request.headers.environ:
                 return jsonify(render_template('reports.html', user=current_user, reports=reports, date_list=date_list,
-                               teachers_list=teachers_list, groups_list=groups_list))
+                               teachers_list=teachers_list, groups_list=groups_list,
+                                               permission_group_id=permission_group_id, controller_list=controller_list))
         return render_template('reports.html', user=current_user, reports=reports, date_list=date_list,
-                               teachers_list=teachers_list, groups_list=groups_list, controller_list=controller_list)
+                               teachers_list=teachers_list, groups_list=groups_list, controller_list=controller_list,
+                               permission_group_id=permission_group_id)
     return BadRequest()
 
 @app.route('/create_report', methods=['GET', 'POST'])
 @login_required
 def create_report_view():
+    permission_group_id = User.get_group_parent_id(current_user)
     if request.method == 'POST':
-        report = Report(date=date.today(), id_group=int(request.form['group']), id_teacher=int(request.form['teacher']),
+        report = Report(date=date.today(), group=request.form['group'], id_teacher=int(request.form['teacher']),
                         comment=request.form['comment'], id_controller=int(current_user.id),
                         pages=str('Страницы: с '+ request.form['number-from']+' по '+request.form['number-to']) + '.')
         session.add(report)
         session.commit()
         return redirect(url_for('reports_view'))
-    groups = session.query(Group).all()
-    teachers = session.query(User).filter(User.id_permission_gorup==2).all()
-    return render_template('create_report.html', date=date.today(), groups=groups, teachers=teachers)
+    if permission_group_id != 31:
+        return Forbidden()
+    users = session.query(User).all()
+    teachers = [teacher for teacher in users if User.get_group_parent_id(teacher)==18]
+    return render_template('create_report.html', date=date.today(), teachers=teachers, permission_group_id=permission_group_id)
 
 @app.route('/change_status_report/<id>', methods=["GET", "POST"])
 @login_required
 def change_status_report_view(id):
+    permission_group_id = User.get_group_parent_id(current_user)
     try:
         report = session.query(Report).get(id)
         if request.headers.get('action') == 'status':
-            if current_user.id_permission_gorup == 2:
+            if permission_group_id == 18:
                 report.status = 'Подтверждение'
-            if current_user.id_permission_gorup == 1:
+            if permission_group_id == 31:
                 if request.headers.get('change') == 'success':
                     report.status = 'Выполнено'
                 if request.headers.get('change') == 'change':
@@ -168,7 +187,6 @@ def change_status_report_view(id):
             report.status = 'Исправить'
         session.commit()
         import time
-        # time.sleep(1)
         return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
     except:
         return NotFound("Report not found")
@@ -176,26 +194,29 @@ def change_status_report_view(id):
 @app.route('/change_report/<id>', methods=["GET", "POST"])
 @login_required
 def change_report_view(id):
+    permission_group_id = User.get_group_parent_id(current_user)
+    if permission_group_id != 31:
+        return Forbidden()
     report = session.query(Report).get(id)
     if request.method == 'POST':
         report.date=date.today()
-        report.id_group=int(request.form['group'])
+        report.group=request.form['group']
         report.id_teacher=int(request.form['teacher'])
         report.comment=request.form['comment']
         report.id_controller=int(current_user.id)
         report.pages=str('Страницы: с '+ request.form['number-from']+' по '+request.form['number-to']) + '.'
         session.commit()
         return redirect(url_for('reports_view'))
-    groups = session.query(Group).all()
     import re
     page_start = page_end = None
     try:
         page_start, page_end = re.findall('(\d+)', report.pages)
     except ValueError:
         pass
-    teachers = session.query(User).filter(User.id_permission_gorup == 2).all()
-    return render_template('create_report.html', date=date.today(), groups=groups, teachers=teachers, report=report,
-                           page_start=page_start, page_end=page_end)
+    users = session.query(User).all()
+    teachers = [teacher for teacher in users if User.get_group_parent_id(teacher) == 18]
+    return render_template('create_report.html', date=date.today(), teachers=teachers, report=report,
+                           page_start=page_start, page_end=page_end, permission_group_id=permission_group_id)
 
 
 @app.route("/logout")

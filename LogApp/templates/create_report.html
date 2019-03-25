@@ -4,23 +4,14 @@
     {% if report is defined %}
         <form action="/change_report/{{ report.id }}" method="post" style="width: 50%;">
             <p style="padding-left: 25%">Дата: <input id="date-report" type="date" value="{{ date }}" readonly></p>
-            <p style="padding-left: 20%">
-                <select name="group" required>
-                    {% for group in groups %}
-                        {% if group.name == report.group %}
-                            <option value="{{ group.id }}" selected="selected">{{ group.name }}</option>
-                        {% else %}
-                            <option value="{{ group.id }}">{{ group.name }}</option>
-                        {% endif %} }}
-                    {% endfor %}
-                </select>
-
+            <p style="padding-left: 4%">
+            Группа: <input type="text" name="group" required value="{{ report.group }}">
                 <select name="teacher" required>
                     {% for teacher in teachers %}
-                        {% if (teacher.first_name+''+teacher.last_name) == report.teacher %}
-                            <option value="{{ teacher.id }}" selected="selected">{{ teacher.first_name }} {{ teacher.last_name }}</option>
+                        {% if (teacher.name) == report.teacher %}
+                            <option value="{{ teacher.id }}" selected="selected">{{ teacher.name }}</option>
                         {% else %}
-                            <option value="{{ teacher.id }}">{{ teacher.first_name }} {{ teacher.last_name }}</option>
+                            <option value="{{ teacher.id }}">{{ teacher.name }}</option>
                         {% endif %}
                     {% endfor %}
                 </select>
@@ -34,18 +25,12 @@
     {% else %}
         <form action="/create_report" method="post" style="width: 50%;">
             <p style="padding-left: 25%">Дата: <input id="date-report" type="date" value="{{ date }}" readonly></p>
-            <p style="padding-left: 20%">
-                <select name="group" required>
-                    <option selected="selected" disabled>Выбрать группу</option>
-                    {% for group in groups %}
-                        <option value="{{ group.id }}">{{ group.name }}</option>
-                    {% endfor %}
-                </select>
-
+            <p style="padding-left: 4%">
+            Группа: <input type="text" name="group" required value="{{ group }}">
                 <select name="teacher" required>
                     <option selected="selected" disabled>Выбрать преподавателя</option>
                     {% for teacher in teachers %}
-                        <option value="{{ teacher.id }}">{{ teacher.first_name }} {{ teacher.last_name }}</option>
+                        <option value="{{ teacher.id }}">{{ teacher.name }}</option>
                     {% endfor %}
                 </select>
             </p>

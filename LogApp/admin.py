@@ -11,7 +11,7 @@ from flask_login import logout_user, current_user, AnonymousUserMixin, login_req
 class MyModelView(sqla.ModelView):
     def is_accessible(self):
         try:
-            return current_user.id_permission_gorup == 4
+            return session.query(UserUsergroupMap).filter_by(user_id=current_user.id).first().group_id == 8
         except AttributeError:
             return redirect(url_for('admin.login_view'))
 
@@ -54,7 +54,7 @@ from .models import *
 
 admin.add_view(MyModelView(Report, session))
 admin.add_view(MyModelView(User, session))
-admin.add_view(MyModelView(Group, session))
-admin.add_view(MyModelView(PermissionGroup, session))
+admin.add_view(MyModelView(UserGroup, session))
+admin.add_view(MyModelView(UserUsergroupMap, session))
 
 from .views import *
