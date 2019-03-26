@@ -1,0 +1,18 @@
+Это в мэйн-конфиге:
+    LoadFile "c:/program files/python37/python37.dll"
+    LoadModule wsgi_module "c:/program files/python37/lib/site-packages/mod_wsgi/server/mod_wsgi.cp37-win_amd64.pyd"
+    WSGIPythonHome "c:/program files/python37"
+
+Это в виртуалхост-конфиге:
+    <VirtualHost *:80>
+       ServerAdmin admin-name-here
+       ServerName  localhost:80
+       WSGIScriptAlias /app "C:\Users\King\PycharmProjects\collegeLogIs\MyApp.wsgi"
+      DocumentRoot "C:\Users\King\PycharmProjects\collegeLogIs"
+       <Directory "C:\Users\King\PycharmProjects\collegeLogIs">
+		Require all granted
+       </Directory>
+       ErrorLog "C:/error.log"
+       CustomLog "C:/access.log" common
+    </VirtualHost>
+
