@@ -1,3 +1,4 @@
+import ldap
 from datetime import date
 
 from werkzeug.exceptions import BadRequest, NotFound, Forbidden
@@ -25,6 +26,13 @@ def login():
         return redirect(url_for('admin.index'))
     form = LoginForm()
     if form.validate_on_submit():
+        try:
+            User.try_login(form.username.data, form.password.data)
+        except ldap.INVALID_CREDENTIALS:
+            flash(
+                'Invalid username or password. Please try again.',
+                'danger')
+            return render_template('login.html', form=form)
         user = session.query(User).filter_by(username=form.username.data).first()
         if user is None or user.password != form.password.data:
             flash('Invalid username or password')

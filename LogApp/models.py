@@ -1,4 +1,4 @@
-from .app import Base
+from .app import Base, get_ldap_connection
 from sqlalchemy.orm import relationship
 from sqlalchemy import *
 from datetime import date
@@ -16,6 +16,14 @@ class User(Base, UserMixin):
         group_id = session.query(UserUsergroupMap).filter_by(user_id=usr.id).first().group_id
         parent_id = session.query(UserGroup).filter_by(id=group_id).first().parent_id
         return parent_id
+
+    @staticmethod
+    def try_login(username, password):
+        conn = get_ldap_connection()
+        conn.simple_bind_s(
+            'cn=%s,ou=Users,dc=testathon,dc=net' % username,
+            password
+        )
     def __str__(self):
         return self.name
 
