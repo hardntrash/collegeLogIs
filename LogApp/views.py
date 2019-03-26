@@ -7,7 +7,7 @@ from werkzeug.urls import url_parse
 from .app import app, session
 from .models import User, UserGroup, UserUsergroupMap, Report
 from flask_login import current_user, login_user, login_required, logout_user
-from flask import redirect, url_for, flash, render_template, request, jsonify, json
+from flask import redirect, url_for, flash, render_template, request, jsonify, json, g
 
 from .forms import LoginForm
 
@@ -18,6 +18,10 @@ from sqlalchemy import desc
 @login_required
 def index():
     return render_template('index.html')
+
+@app.before_request
+def get_current_user():
+    g.user = current_user
 
 # авторизация для преподов, контроллеров
 @app.route('/login', methods=['GET', 'POST'])
@@ -34,7 +38,7 @@ def login():
                 'danger')
             return render_template('login.html', form=form)
         user = session.query(User).filter_by(username=form.username.data).first()
-        if user is None or user.password != form.password.data:
+        if user is None:
             flash('Invalid username or password')
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
